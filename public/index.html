@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        td {
+            width: 200px;
+            height: 30px;
+            border: 1px solid black;
+            text-align: center;
+        }
+    </style>
+    <title>Jobs-Done</title>
+</head>
+<body>
+
+    <form action="/handler/" method="post">
+        <input type="text" name="job" placeholder="Job">
+        <input type="text" name="day" placeholder="Day">
+        <input type="text" name="time" placeholder="Time">
+        <input type="submit">
+    </form>
+
+    {% get table %}
+    
+</body>
+</html>

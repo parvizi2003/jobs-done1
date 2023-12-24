@@ -1,0 +1,23 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 20px;
+}
+
+form {
+    margin-bottom: 20px;
+}
+
+td {
+    width: 200px;
+    height: 30px;
+    border: 1px solid black;
+    text-align: center;
+}
