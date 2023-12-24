@@ -1,13 +1,25 @@
 import express from 'express';
-import __dirname from './dirname.js';
+import session from 'express-session'
+import path from 'path';
 import fs from 'fs/promises';
+import cookieParser from 'cookie-parser';
 
+
+const __dirname = path.resolve();
 let app = express();
 let urlEncodedParser = express.urlencoded({extended: false})
 
+
+app.use(session({
+    secret: 'qwerty',
+    resave: false,
+    saveUninitialized: true,
+}))
+
+app.use(express.static(__dirname + '/static'))
+
 app.get('/', async (req, res) => {
-    let login = JSON.parse(await fs.readFile(__dirname + '/login.json'));
-    if (login.isLogged == 'true') {
+    if (req.session.username) {
         try {
             let file = await fs.readFile(__dirname + '/public/index.html', 'utf-8');
             let data = JSON.parse(await fs.readFile(__dirname + '/data.json'));
@@ -36,6 +48,7 @@ app.get('/login/',async (req, res) => {
     res.send(file)
 })
 
+
 app.post('/handler/', urlEncodedParser, async (req, res) => {
     if (!req.body) return res.sendStatus(400);
     let data = JSON.parse(await fs.readFile(__dirname + '/data.json'));
@@ -50,11 +63,11 @@ app.post('/login/', urlEncodedParser, async (req, res) => {
     let login = JSON.parse(await fs.readFile(__dirname + '/login.json'))
     if(login[req.body.userName]) {
         if (login[req.body.userName].password == req.body.password) {
-            login.isLogged = 'true';
-            await fs.writeFile(__dirname + '/login.json', JSON.stringify(login))
-            res.redirect('/');
+            req.session.username = req.body.userName;
+            req.session.password = req.body.password;
+            res.redirect('/')
         } else {
-            let file = await fs.readFile(__dirname + '/public/login.html');
+            let file = await fs.readFile(__dirname + '/public/login.html', 'utf-8');
             file = file.replace(/\{% get error %\}/, '<p>Wrong name or password</p>');
             res.send(file);    
         }
