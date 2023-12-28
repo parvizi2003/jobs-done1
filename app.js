@@ -1,81 +1,83 @@
 import express from 'express';
-import session from 'express-session'
+import expressHandlebars from 'express-handlebars';
+import cookieParser from 'cookie-parser';
+import session from 'express-session';
 import path from 'path';
 import fs from 'fs/promises';
-import cookieParser from 'cookie-parser';
 
 
+const app = express();
+const handlebars = expressHandlebars.create({defaultLayout: 'main', extname: 'hbs'});
 const __dirname = path.resolve();
-let app = express();
+
 let urlEncodedParser = express.urlencoded({extended: false})
 
+app.engine('hbs', handlebars.engine);
+app.set('view engine', 'hbs');
 
+app.use(express.static(__dirname + '/static'));
 app.use(session({
     secret: 'qwerty',
     resave: false,
     saveUninitialized: true,
 }))
 
-app.use(express.static(__dirname + '/static'))
-
 app.get('/', async (req, res) => {
-    if (req.session.username) {
-        try {
-            let file = await fs.readFile(__dirname + '/public/index.html', 'utf-8');
-            let data = JSON.parse(await fs.readFile(__dirname + '/data.json'));
-            let table = '<table>';
-            for (let elem of data) {
-                table += '<tr>';
-                for (let subElem of elem) {
-                    table += '<td>' + subElem + '</td>';
-                }
-                table += '</tr>';
-            }
-            file = file.replace(/\{% get table %\}/, table)
-            res.send(file);
-        } catch {
-            res.status(404).send('404 page not found');
-        }    
+    if (req.session.user) {
+        let data = JSON.parse(await fs.readFile('./data/table.json', 'utf-8'));
+        if (req.session.user == 'admin') {
+            res.render('index', {table: data, show: true});
+        } else  {
+            res.render('index', {table: data, show: false});
+        }
     } else {
-        res.redirect('/login');
+        res.redirect('/login/')
     }
-    
 })
 
-app.get('/login/',async (req, res) => {
-    let file = await fs.readFile(__dirname + '/public/login.html', 'utf-8');
-    file = file.replace(/\{% get error %\}/, '')
-    res.send(file)
-})
-
-
-app.post('/handler/', urlEncodedParser, async (req, res) => {
-    if (!req.body) return res.sendStatus(400);
-    let data = JSON.parse(await fs.readFile(__dirname + '/data.json'));
-    data.push([req.body.job, req.body.day, req.body.time]);
-    data = JSON.stringify(data);
-    await fs.writeFile(__dirname + '/data.json', data);
-    res.redirect('/')
+app.get('/login/', (req, res) => {
+    res.render('login', {error: ''})
 })
 
 app.post('/login/', urlEncodedParser, async (req, res) => {
-    if (!req.body) return res.sendStatus(400);
-    let login = JSON.parse(await fs.readFile(__dirname + '/login.json'))
-    if(login[req.body.userName]) {
-        if (login[req.body.userName].password == req.body.password) {
-            req.session.username = req.body.userName;
-            req.session.password = req.body.password;
-            res.redirect('/')
-        } else {
-            let file = await fs.readFile(__dirname + '/public/login.html', 'utf-8');
-            file = file.replace(/\{% get error %\}/, '<p>Wrong name or password</p>');
-            res.send(file);    
-        }
+    let users = JSON.parse(await fs.readFile('./data/users.json', 'utf-8'));
+    if (users[req.body.userName] == req.body.password) {
+        let userName = req.body.userName;
+        req.session.user = userName;
+        res.redirect('/');
     } else {
-        let file = await fs.readFile(__dirname + '/public/login.html', 'utf-8');
-        file = file.replace(/\{% get error %\}/, '<p>Wrong name or password</p>');
-        res.send(file);
+        res.render('login', {error: 'Wrong username or password'});
     }
 })
 
-app.listen(3000, () => console.log('running'));
+app.post('/logout/', urlEncodedParser, (req, res) => {
+    req.session.user = undefined;
+    res.redirect('/')
+})
+
+app.post('/editCell-:num', urlEncodedParser, async (req, res) => {
+    let data = JSON.parse(await fs.readFile('./data/table.json', 'utf-8'));
+    let params = req.params.num;
+    data[params[0]][params[1]] = req.body.edit;
+    await fs.writeFile('./data/table.json', JSON.stringify(data))
+    res.redirect('/')
+})
+
+app.post('/delRow-:num', urlEncodedParser, async (req, res) => {
+    let data = JSON.parse(await fs.readFile('./data/table.json', 'utf-8'));
+    let copy = Object.assign([], data);
+    copy.splice((req.params.num), 1);
+    await fs.writeFile('./data/table.json', JSON.stringify(copy));
+    res.redirect('/')
+})
+
+app.post('/', urlEncodedParser, async (req, res) => {
+    let data = JSON.parse(await fs.readFile('./data/table.json', 'utf-8'));
+    data.push([req.body.job, req.body.day, req.body.time]);
+    await fs.writeFile('./data/table.json', JSON.stringify(data))
+    res.redirect('/')
+})
+
+app.listen(3000, () => {
+    console.log('Server has been started on port 3000');
+})
