@@ -1,0 +1,21 @@
+<form action="/register/" method="post" class="login__form register" data-err="true">
+    <label class="login__form-label">
+        Enter username
+        <input type="text" class="login__form-input username-input" name="userName">
+        <p class="userName-error"></p>
+    </label>
+    <label class="login__form-label">
+        Enter password
+        <input type="password" class="login__form-input password-input" name="password">
+    </label>
+    <label class="login__form-label">
+        Confirm password
+        <input type="password" class="login__form-input password-input" name="confirmPassword">
+        <p class="password-error"></p>
+    </label>
+    <p class="form-err">{{error}}</p>
+    <input type="submit" class="login__form-input">
+    <a href="/login/">ALREADY HAVE ACCOUNT?</a>
+</form>
+
+<script src="/register.js"></script>

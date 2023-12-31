@@ -1,4 +1,4 @@
-let rows = document.querySelectorAll('tr');
+let rows = document.querySelectorAll('.index__table-row');
 
 for (let i = 0; i < rows.length; i++) {
     let cells = rows[i].children;

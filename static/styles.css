@@ -12,20 +12,25 @@ body {
     height: 50px;
     background: #ebebeb;
     display: flex;
-    justify-content: flex-end;
     align-items: center;
 }
 
-.logout {
+.username {
     margin: 10px;
     padding: 10px;
     text-decoration: none;
     color: black;
     border: 1px solid black;
+    cursor: context-menu;
 }
 
-.logout:hover {
-    background: #fff;
+.header form input {
+    margin: 10px;
+    border: 0;
+}
+
+.header form input:hover {
+    text-decoration: underline;
 }
 
 .wrapper {
@@ -80,7 +85,6 @@ input[type="submit"] {
 .login__form {
     margin: 100px auto;
     width: 300px;
-    height: 200px;
     border: 1px solid black;
     border-radius: 2%;
     background: #ebebeb;
@@ -88,6 +92,7 @@ input[type="submit"] {
     justify-content: space-evenly;
     align-items: center;
     flex-direction: column;
+    padding-top: 10px;
 }
 .login__form-input {
     width: 90%;
@@ -98,6 +103,7 @@ input[type="submit"] {
     background: #fff;
     border: 1px solid black;
     border-radius: 2px;
+    margin: 20px 0;
 }
 .login__form-label {
     width: 100%;
@@ -105,8 +111,17 @@ input[type="submit"] {
     justify-content: center;
     align-items: center;
     flex-direction: column;
+    margin-bottom: 10px;
 }
 .login__form p {
     text-align: center;;
     color: red;
+}
+.login__form a {
+    text-decoration: none;
+    margin-bottom: 10px;
+}
+
+.login__form a:hover {
+    text-decoration: underline;
 }

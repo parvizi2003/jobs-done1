@@ -26,17 +26,25 @@ app.get('/', async (req, res) => {
     if (req.session.user) {
         let data = JSON.parse(await fs.readFile('./data/table.json', 'utf-8'));
         if (req.session.user == 'admin') {
-            res.render('index', {table: data, show: true});
+            res.render('index', {table: data, show: true, username: req.session.user});
         } else  {
-            res.render('index', {table: data, show: false});
+            res.render('index', {table: data, show: false, username: req.session.user});
         }
     } else {
-        res.redirect('/login/')
+        res.redirect('/login');
     }
 })
 
 app.get('/login/', (req, res) => {
     res.render('login', {error: ''})
+})
+
+app.get('/register', async(req, res) => {
+    res.render('register')
+})
+
+app.get('/changePassword/', async(req, res) => {
+    res.render('changePassword')
 })
 
 app.post('/login/', urlEncodedParser, async (req, res) => {
@@ -50,9 +58,32 @@ app.post('/login/', urlEncodedParser, async (req, res) => {
     }
 })
 
+app.post('/register/', urlEncodedParser, async (req, res) => {
+    let users = JSON.parse(await fs.readFile('./data/users.json', 'utf-8'));
+    if (users[req.body.userName]) {
+        res.render('register', {error: 'U cant use this name'});
+    } else {
+        users[req.body.userName] = req.body.password;
+        req.session.user = req.body.userName;
+        await fs.writeFile('./data/users.json', JSON.stringify(users));
+        res.redirect('/');
+    }
+})
+
 app.post('/logout/', urlEncodedParser, (req, res) => {
     req.session.user = undefined;
     res.redirect('/')
+})
+
+app.post('/changePassword/', urlEncodedParser, async(req, res) => {
+    let users = JSON.parse(await fs.readFile('./data/users.json', 'utf-8'))
+    if (users[req.session.user] == req.body.oldPassword) {
+        users[req.session.user] = req.body.newPassword;
+        await fs.writeFile('./data/users.json', JSON.stringify(users))
+        res.redirect('/');
+    } else {
+        res.render('changePassword', {error: 'Incorrect old password'})
+    }
 })
 
 app.post('/editCell-:num', urlEncodedParser, async (req, res) => {
