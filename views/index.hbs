@@ -8,14 +8,12 @@
     </form>
 </header>
 <div class="wrapper">
-    {{#if show}}
-        <form action="/" method="post" class="index__form">
-            <input class="index__form-input" type="text" name="job">
-            <input class="index__form-input" type="text" name="day">
-            <input class="index__form-input" type="text" name="time">
-            <input class="index__form-input" type="submit">
-        </form>
-    {{/if}}
+    <form action="/" method="post" class="index__form">
+        <input class="index__form-input" type="text" name="job">
+        <input class="index__form-input" type="text" name="day">
+        <input class="index__form-input" type="text" name="time">
+        <input class="index__form-input" type="submit">
+    </form>
     <table class="index__table">
         {{#each table}}
             <tr class="index__table-row">
@@ -25,11 +23,6 @@
             </tr>    
         {{/each}}
     </table>
-    {{#if show}}
-    <p>Click -------^</p>
-    {{/if}}
 </div>
 
-{{#if show}}
-    <script src="/main.js"></script>
-{{/if}}
+<script src="/main.js"></script>

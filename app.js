@@ -1,6 +1,5 @@
 import express from 'express';
 import expressHandlebars from 'express-handlebars';
-import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import path from 'path';
 import fs from 'fs/promises';
@@ -24,12 +23,8 @@ app.use(session({
 
 app.get('/', async (req, res) => {
     if (req.session.user) {
-        let data = JSON.parse(await fs.readFile('./data/table.json', 'utf-8'));
-        if (req.session.user == 'admin') {
-            res.render('index', {table: data, show: true, username: req.session.user});
-        } else  {
-            res.render('index', {table: data, show: false, username: req.session.user});
-        }
+        let data = JSON.parse(await fs.readFile('./data/users.json', 'utf-8'));
+        res.render('index', {table: data[req.session.user].table, username: req.session.user});
     } else {
         res.redirect('/login');
     }
@@ -49,7 +44,7 @@ app.get('/changePassword/', async(req, res) => {
 
 app.post('/login/', urlEncodedParser, async (req, res) => {
     let users = JSON.parse(await fs.readFile('./data/users.json', 'utf-8'));
-    if (users[req.body.userName] == req.body.password) {
+    if (users[req.body.userName].password == req.body.password) {
         let userName = req.body.userName;
         req.session.user = userName;
         res.redirect('/');
@@ -63,7 +58,10 @@ app.post('/register/', urlEncodedParser, async (req, res) => {
     if (users[req.body.userName]) {
         res.render('register', {error: 'U cant use this name'});
     } else {
-        users[req.body.userName] = req.body.password;
+        users[req.body.userName] = {
+            'password': req.body.password,
+            'table': []
+        }
         req.session.user = req.body.userName;
         await fs.writeFile('./data/users.json', JSON.stringify(users));
         res.redirect('/');
@@ -77,8 +75,9 @@ app.post('/logout/', urlEncodedParser, (req, res) => {
 
 app.post('/changePassword/', urlEncodedParser, async(req, res) => {
     let users = JSON.parse(await fs.readFile('./data/users.json', 'utf-8'))
-    if (users[req.session.user] == req.body.oldPassword) {
-        users[req.session.user] = req.body.newPassword;
+    if (users[req.session.user].password == req.body.oldPassword) {
+        console.log(users[req.session.user].password)
+        users[req.session.user].password = req.body.newPassword;
         await fs.writeFile('./data/users.json', JSON.stringify(users))
         res.redirect('/');
     } else {
@@ -87,25 +86,24 @@ app.post('/changePassword/', urlEncodedParser, async(req, res) => {
 })
 
 app.post('/editCell-:num', urlEncodedParser, async (req, res) => {
-    let data = JSON.parse(await fs.readFile('./data/table.json', 'utf-8'));
+    let data = JSON.parse(await fs.readFile('./data/users.json', 'utf-8'));
     let params = req.params.num;
-    data[params[0]][params[1]] = req.body.edit;
-    await fs.writeFile('./data/table.json', JSON.stringify(data))
+    data[req.session.user].table[params[0]][params[1]] = req.body.edit;
+    await fs.writeFile('./data/users.json', JSON.stringify(data))
     res.redirect('/')
 })
 
 app.post('/delRow-:num', urlEncodedParser, async (req, res) => {
-    let data = JSON.parse(await fs.readFile('./data/table.json', 'utf-8'));
-    let copy = Object.assign([], data);
-    copy.splice((req.params.num), 1);
-    await fs.writeFile('./data/table.json', JSON.stringify(copy));
+    let data = JSON.parse(await fs.readFile('./data/users.json', 'utf-8'));
+    data[req.session.user].table.splice((req.params.num), 1)
+    await fs.writeFile('./data/users.json', JSON.stringify(data));
     res.redirect('/')
 })
 
 app.post('/', urlEncodedParser, async (req, res) => {
-    let data = JSON.parse(await fs.readFile('./data/table.json', 'utf-8'));
-    data.push([req.body.job, req.body.day, req.body.time]);
-    await fs.writeFile('./data/table.json', JSON.stringify(data))
+    let data = JSON.parse(await fs.readFile('./data/users.json', 'utf-8'));
+    data[req.session.user].table.push([req.body.job, req.body.day, req.body.time]);
+    await fs.writeFile('./data/users.json', JSON.stringify(data))
     res.redirect('/')
 })
 
